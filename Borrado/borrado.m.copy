@@ -1,0 +1,62 @@
+% borrado de variables y termianle
+clear all; clc;
+% Leemos la imagen
+A = imread("arco.jpg");
+% Convertimos la imagen A a escala de grises 
+I = rgb2gray(A);
+% I = imnoise(I, 'Gaussian', 0.04, 0.003);
+% I = histeq(I);
+[Filas, Columnas, P] = size(I);
+% Pasamos a double la imagen
+D = double(I);
+Dr = D;
+% ---------------------------------------------------------------------------
+% Empezamos el filtro borroso
+for r=2:Filas-1
+  for c=2:Columnas-1
+    Dr(r,c)=(1/9)*(D(r,c)+D(r+1,c)+D(r+1,c-1)+D(r,c-1)+D(r-1,c-1)+D(r-1,c)+D(r-1,c+1)+D(r,c+1)+D(r+1,c+1));
+  end
+end
+Dr = uint8(Dr);
+% ---------------------------------------------------------------------------
+% Empezamos con el filtro Gauss
+sigma = 5;
+kernel = zeros(5,5);
+W = 0;
+for x=1:5
+  for y=1:5
+    sq_dist = (x-3)^2 + (y-3)^2;
+    kernel(x,y) = exp(-1*(sq_dist)/(2*sigma*sigma));
+    W = W + kernel(x,y);
+  end
+end
+kernel = kernel/W;
+
+% Aplicamos el filtro
+G = zeros(Filas, Columnas);
+Im = padarray(I, [2 2]);
+for r=1:Filas
+  for c=1:Columnas
+    temp = Im(r:r+4, c:c+4);
+    temp = double(temp);
+    conv = temp.*kernel;
+    G(r,c) = sum(conv(:));
+  end
+end
+G = uint8(G)
+% ---------------------------------------------------------------------------
+% Empezamos con el filtro Gauss
+% ------------------------AREA DE IMPRESION----------------------------------
+% Impresion de la imagen original
+subplot(1,3,1)
+imshow(I)
+title('Imagen original')
+% Impresion de la imagen con filtro borroso
+subplot(1,3,2)
+imshow(Dr)
+title('Imagen con filtro borroso')
+% Impresion de la imagen con filtro Gauss
+subplot(1,3,3)
+imshow(G)
+title('Imagen con filtro Gauss')
+
